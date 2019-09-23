@@ -1,0 +1,248 @@
+---
+title: "Aula Rmarkdown"
+author: "Érika S"
+date: "31/07/2019"
+output: 
+  html_document:
+  theme: journal
+  code_folding: hide
+  
+
+---
+
+# Introdução
+
+Você pode usar os arquivos de RMarkdown para as seguintes funcionalidades: <br>
+
+- Salvar e executar código  
+- Gerar relatórios de alta qualidade que podem ser compartilhados <br>
+
+Normalmente o arquivo RMarkdown contém três tipos de conteúdo: <br>
+
+- Um (opcional) cabeçalho YAML cercado por ---s  
+- Chunks de código R cercado por ``` s  
+- Texto simples <br>
+
+# Chunks {.tabset}
+
+Você pode inserir rapidamente um chunk das seguintes formas:
+
+- No teclado apertando **Ctrl + Alt + I** (OS X: **Cmd + Option + I**)  
+- No botão Insert + R na barra de ferramentas do editor <br>  
+- Ou escrevendo os delimitadores do chunk ```{r} and ```.  
+
+```{r pacotes, echo=FALSE}
+library(tidyverse)
+```
+
+## Opções
+
+As saídas do chunk poder ser customizadas, os argumentos são colocados dentro de {} no cabeçalho do chunk. Abaixo estaremos mostrando 4 argumentos:  
+
+- `include = FALSE` não deixa que o código e o resultado apareçam no arquivo final. o RMarkdown ainda roda o código do chunk, mas não é mostrado no arquivo gerado.  
+- `echo = FALSE` não deixa o código ser mostrado, mas os resultados aparecem no arquivo final.  
+- `message  = FALSE` não deixa que mensagens que são geradas pelo código apareçam no arquivo final.  
+- `warning   = FALSE` não deixa que mensagens de aviso (_warning_) apareçam no arquivo final.  
+
+## Opções globais
+
+Para configurar opções que se aplicam a todos os chunks no seu arquivo, chame `knitr::opts_chunk$set` em um código do chunk.  
+Exemplo  
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Sintaxe Markdown
+
+O texto no documento RMarkdown  é escrito com a sintaxe Markdown Pandoc. Existem vários tipos de Markdown inventados por diferentes pessoas. Você encontrará a documentação completa do Pandoc Markdown em [https://pandoc.org/MANUAL.html](Pandoc) e é recomendável ler pelo menos uma vez esse manual para descobrir todas as possibilidades dele.  
+
+## Formato na linha
+
+- _italic_ ou *italic*  
+- __negrito__ ou **negrito**  
+- texto~subescrito~  
+- texto^superescrito^  
+- `código em linha`  
+- Hiperlinks são criados assim: [Wesites RMarkdown](https://rmarkdown.rstudio.com/gallery.html)  
+- Nota de Rodapé 1^[Essa é uma nota de rodapé]  
+- Nota^[oi]  
+
+
+## Níveis de blocos de elementos
+
+# Cabeçalho de Primeiro Nível
+## Cabeçalho de Segundo Nível {.unnumbered}
+### Cabeçalho de Terceiro Nível
+#### Cabeçalho de Quarto Nível
+##### Cabeçalho de Cinco Nível
+###### Cabeçalho de Sexto Nível
+
+Se você não quer que certo cabeçalho seja enumerado, você pode adicionar {-} ou {.unnumbered} depois do cabeçalho  
+
+### Começo
+
+Ordene uma lista de ítens começando com `*`, `-` ou `+`. E para fazer uma sublista, basta identar.  
+
+
+- um item  
+- um item  
+- um item  
+    - mais um item  
+    - mais um item  
+    - mais um item  
+ 
+
+Notas de livros são escritas depois de `>`
+
+> "I thoroughly disapprove of duels. If a man should challenge me,
+  I would take him kindly and forgivingly by the hand and lead him
+  to a quiet place and kill him."
+>
+> --- Mark Twain
+
+## Expressões matemáticas
+
+As expressões matemáticas são feitas com a sintaxe Latex. Você pode usar sifrões simples para as expressões ficarem junto com o texto $\beta$, ou usar cifrões duplos para ficarem destacados assim como:
+$$ f(k) = {n \choose k} p^{k} (1-p)^{n-k}$$.  
+
+
+Um bom site para referências dessa expressões é [Latex/Mathematics](https://en.wikibooks.org/wiki/LaTeX)  
+
+
+## Outras configurações do chunk
+
+Fora do código no chunk, você pode também inserir valores de objetos do R no texto. Por exemplo  
+
+```{r}
+x = 5  # raio de um circulo
+```
+
+Para um círculo de raio `r x`, sua área é `r pi * x^2`.  
+
+## Plots  
+
+```{r, fig_caption: TRUE, fig.height= 8, fig.width=6}
+plot(cars, pch = 18)
+plot(x)
+```
+
+# Gráficos Interativos
+
+```{r, message=FALSE}
+library(plotly)
+library(tidyverse)
+library(magrittr)
+
+library(plotly)
+
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+d <- txhousing %>%
+  filter(year > 2005, city %in% c("Abilene", "Bay Area")) %>%
+  accumulate_by(~date)
+
+p <- d %>%
+  plot_ly(
+    x = ~date, 
+    y = ~median,
+    split = ~city,
+    frame = ~frame, 
+    type = 'scatter',
+    mode = 'lines', 
+    line = list(simplyfy = F)
+  ) %>% 
+  layout(
+    xaxis = list(
+      title = "Date",
+      zeroline = F
+    ),
+    yaxis = list(
+      title = "Median",
+      zeroline = F
+    )
+  ) %>% 
+  animation_opts(
+    frame = 100, 
+    transition = 0, 
+    redraw = FALSE
+  ) %>%
+  animation_slider(
+    hide = T
+    ) %>%
+  animation_button(
+    x = 1, xanchor = "right", y = 0, yanchor = "bottom"
+  )
+
+p
+```
+
+Website de plots interativos [Plotly](https://plot.ly/r/)  
+
+# Documento HTML {.tabset .tabset-fade .tabset-pills}
+
+- `number_sections: true`: Irá enumerar tudo que começa com #;  
+- `{.tabset}` ou `{.tabset .tabset-fade .tabset-pills}`: Você pode organizar as sessões usando tabs atribuído aos cabeçalhos. Isso irá causar todos os sub-cabeçalhos.  
+
+## Aparência e Estilo {.tabset}
+
+- `theme`: especifica o tema para ser usado para a página. Temas válidos incluem default, cerulean, journal, flatly, darkly, readable, spacelab, united, cosmo, lumen, paper, sandstone, simplex, and yeti.   [Bootswatch](https://bootswatch.com/3/) É possível adicionar novos temas instalando alguns pacotes [Galeria de temas](http://www.datadreaming.org/post/r-markdown-theme-gallery/)  
+- `highlight`: Especifica a sintaxe do estilo destacado. Os estilos suportados são default, tango, pygments, kate, monochrome, espresso, zenburn, haddock, and textmate.  
+
+## Opções de figura
+
+Existem várias opções que afetam a saída das figuras nos documentos HTML:  
+- `fig_width` and `fig_height` podem ser usados para controlar a largura e comprimento padrões da figura (7x5 é usada como padrão);   
+- `fig_caption`: controla se as figuras estão sendo renderizadas com legendas.  
+
+Exemplo:
+``---  
+title: "Habits"  
+output:  
+  html_document:  
+    fig_width: 7  
+    fig_height: 6  
+    fig_caption: true  
+---``
+
+- `df_print: paged`: Imprime as tabelas com paginação nas linhas e colunas  
+- `code_folding: hide`: Essa opção faz com que o código R seja incluso, mas fica escondido por padrão  
+
+# Tabela
+
+## KNITR E KABLEEXTRA
+Para criar ótimas tabelas é preciso usar knitr::kable e kableExtra. Os detalhes das configurações estão no link [kableExtra](http://haozhu233.github.io/kableExtra/awesome_table_in_html.html)  
+
+```{r}
+library(knitr)
+library(kableExtra)
+dt <- mtcars[1:5, 1:6]
+
+dt %>%
+  kable() %>%
+  kable_styling()
+```
+
+## DT
+
+[https://rstudio.github.io/DT/]()  
+# Tipos de arquivos gerados pelo Rmarkdown
+
+- HTML [https://bookdown.org/yihui/rmarkdown/]()  
+- Notebook  
+- PDF  
+- Word  
+- Pacote R  
+- Apresentações: [Xaringan](https://slides.yihui.name/xaringan/#1) [Xaringan Bookdown](https://bookdown.org/yihui/rmarkdown/xaringan.html) ;  
+- Dashboards: [Flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/examples.html) [https://rmarkdown.rstudio.com/flexdashboard/]() ;  
+- Folhetos Tufte  
+- WebSites. [Exemplo/Emily](http://www.emilyzabor.com/) [Tutorial Emily](https://www.emilyzabor.com/tutorials/rmarkdown_websites_tutorial.html);   
+- Livros [Efficient R programming](https://bookdown.org/csgillespie/efficientR/) ; [Introducing Bookdown](https://www.rstudio.com/resources/webinars/introducing-bookdown/)   
+- Blogs [Curso-R](https://www.curso-r.com/blog/); [https://bookdown.org/yihui/blogdown/]()  
